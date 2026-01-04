@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Professional CNN Architecture - Sign Language Detection</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: #212529;
+      text-align: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      margin-top: 30px;
+      font-size: 2.8rem;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 1.3rem;
+      margin-bottom: 40px;
+      color: #495057;
+      font-weight: 500;
+    }
+
+    .architecture {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 25px;
+      flex-wrap: wrap;
+      margin: 30px 20px;
+      padding: 30px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      max-width: 1400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .layer {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+      padding: 25px;
+      text-align: center;
+      width: 200px;
+      transition: all 0.3s ease;
+      border: 1px solid #e9ecef;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .layer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+    }
+
+    .layer:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .visual-element {
+      width: 160px;
+      height: 120px;
+      margin: 0 auto 20px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Input Layer Visual */
+    .input-visual {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      font-size: 50px;
+      position: relative;
+    }
+
+    .input-visual::after {
+      content: '224×224×3';
+      position: absolute;
+      bottom: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    /* Convolutional Layer Visual */
+    .conv-visual {
+      background: #f8f9fa;
+      position: relative;
+    }
+
+    .feature-stack-mini {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      margin: 0 auto;
+    }
+
+    .feature-map-mini {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 6px;
+      border: 2px solid rgba(0,0,0,0.1);
+    }
+
+    .conv-visual .feature-map-mini:nth-child(1) {
+      background: linear-gradient(135deg, #FFE0B2, #FFCC02);
+      transform: translate(0, 0);
+      z-index: 5;
+    }
+
+    .conv-visual .feature-map-mini:nth-child(2) {
+      background: linear-gradient(135deg, #FFCC02, #FFB300);
+      transform: translate(-8px, -8px);
+      z-index: 4;
+    }
+
+    .conv-visual .feature-map-mini:nth-child(3) {
+      background: linear-gradient(135deg, #FFB300, #FF8F00);
+      transform: translate(-16px, -16px);
+      z-index: 3;
+    }
+
+    .conv-visual::after {
+      content: '32 filters';
+      position: absolute;
+      bottom: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: #666;
+    }
+
+    /* Pooling Layer Visual */
+    .pool-visual {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #1976d2;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .pool-visual::after {
+      content: '2×2 Max Pool';
+      font-size: 10px;
+      margin-top: 10px;
+      color: #1565c0;
+    }
+
+    /* Flatten Visual */
+    .flatten-visual {
+      background: linear-gradient(to bottom, #FFE0B2 0%, #FF8F00 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .flatten-bar {
+      width: 20px;
+      height: 80px;
+      background: linear-gradient(to bottom, #FFE0B2, #E65100);
+      border-radius: 10px;
+      position: relative;
+    }
+
+    .flatten-bar::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 6px,
+        rgba(0,0,0,0.1) 6px,
+        rgba(0,0,0,0.1) 8px
+      );
+      border-radius: 10px;
+    }
+
+    /* Fully Connected Visual */
+    .fc-visual {
+      background: #f8f9fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .neuron-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .neuron-mini {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #e91e63, #ad1457);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .connection-lines {
+      width: 20px;
+      height: 60px;
+      background: url('data:image/svg+xml,<svg xmlns="fin" viewBox="0 0 20 60"><line x1="0" y1="10" x2="20" y2="15" stroke="%23666" stroke-width="1"/><line x1="0" y1="20" x2="20" y2="25" stroke="%23666" stroke-width="1"/><line x1="0" y1="30" x2="20" y2="35" stroke="%23666" stroke-width="1"/><line x1="0" y1="40" x2="20" y2="45" stroke="%23666" stroke-width="1"/></svg>') center/contain no-repeat;
+    }
+
+    /* Output Visual */
+    .output-visual {
+      background: #f8f9fa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .prob-bar-mini {
+      height: 12px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 8px;
+      font-weight: bold;
+    }
+
+    .prob-bar-mini.high { background: linear-gradient(135deg, #4CAF50, #2E7D32); width: 60px; }
+    .prob-bar-mini.med { background: linear-gradient(135deg, #FF9800, #F57C00); width: 45px; }
+    .prob-bar-mini.low { background: linear-gradient(135deg, #2196F3, #1565C0); width: 30px; }
+
+    .layer h2 {
+      font-size: 1.4rem;
+      color: #667eea;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .layer p {
+      font-size: 0.95rem;
+      color: #6c757d;
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    .layer-specs {
+      font-size: 0.8rem;
+      color: #28a745;
+      margin-top: 8px;
+      font-weight: 500;
+    }
+
+    .arrow {
+      font-size: 2.5rem;
+      color: #28a745;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .highlight {
+      margin: 50px 20px 30px;
+      padding: 30px;
+      background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+      border-radius: 15px;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      border: 1px solid #c8e6c9;
+    }
+
+    .highlight h3 {
+      margin-bottom: 20px;
+      color: #2e7d32;
+      font-size: 1.6rem;
+      font-weight: 600;
+    }
+
+    .highlight p {
+      font-size: 1.05rem;
+      color: #1b5e20;
+      line-height: 1.8;
+      text-align: left;
+    }
+
+    .highlight-item {
+      margin: 15px 0;
+      padding: 10px 0;
+    }
+
+    .emoji {
+      font-size: 1.2em;
+      margin-right: 8px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .architecture {
+        flex-direction: column;
+        gap: 20px;
+      }
+      
+      .arrow {
+        transform: rotate(90deg);
+        margin: 10px 0;
+      }
+      
+      h1 {
+        font-size: 2.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>🧠 Convolutional Neural Network (CNN)</h1>
+  <p class="subtitle">Architecture for Sign Language Detection</p>
+
+  <div class="architecture">
+    <!-- Input Layer -->
+    <div class="layer">
+      <div class="visual-element input-visual">
+        <img src="fingers-gesture-hand-1366997.jpg" alt="">
+      </div>
+      <h2>Input Layer</h2>
+      <p>Raw hand sign image</p>
+      <div class="layer-specs">RGB Image</div>
+    </div>
+
+    <div class="arrow">➡️</div>
+
+    <!-- Convolutional Layer -->
+    <div class="layer">
+      <div class="visual-element conv-visual">
+        <div class="feature-stack-mini">
+          <div class="feature-map-mini"></div>
+          <div class="feature-map-mini"></div>
+          <div class="feature-map-mini"></div>
+        </div>
+      </div>
+      <h2>Convolutional Layer</h2>
+      <p>Extracts spatial features</p>
+      <div class="layer-specs">5×5 kernels + ReLU</div>
+    </div>
+
+    <div class="arrow">➡️</div>
+
+    <!-- Pooling Layer -->
+    <div class="layer">
+      <div class="visual-element pool-visual">
+        ⬇️
+      </div>
+      <h2>Pooling Layer</h2>
+      <p>Reduces dimensionality</p>
+      <div class="layer-specs">Max Pooling</div>
+    </div>
+
+    <div class="arrow">➡️</div>
+
+    <!-- Flatten Layer -->
+    <div class="layer">
+      <div class="visual-element flatten-visual">
+        <div class="flatten-bar"></div>
+      </div>
+      <h2>Flatten</h2>
+      <p>Converts 2D → 1D</p>
+      <div class="layer-specs">Vector Form</div>
+    </div>
+
+    <div class="arrow">➡️</div>
+
+    <!-- Fully Connected Layer -->
+    <div class="layer">
+      <div class="visual-element fc-visual">
+        <div class="neuron-group">
+          <div class="neuron-mini"></div>
+          <div class="neuron-mini"></div>
+          <div class="neuron-mini"></div>
+          <div class="neuron-mini"></div>
+          <div class="neuron-mini"></div>
+        </div>
+        <div class="connection-lines"></div>
+        <div class="neuron-group">
+          <div class="neuron-mini" style="background: linear-gradient(135deg, #2196f3, #1565c0);"></div>
+          <div class="neuron-mini" style="background: linear-gradient(135deg, #2196f3, #1565c0);"></div>
+          <div class="neuron-mini" style="background: linear-gradient(135deg, #2196f3, #1565c0);"></div>
+        </div>
+      </div>
+      <h2>Fully Connected</h2>
+      <p>Combines extracted features</p>
+      <div class="layer-specs">512 → 256 neurons</div>
+    </div>
+
+    <div class="arrow">➡️</div>
+
+    <!-- Output Layer -->
+    <div class="layer">
+      <div class="visual-element output-visual">
+        <div class="prob-bar-mini high">A-0.8</div>
+        <div class="prob-bar-mini med">B-0.1</div>
+        <div class="prob-bar-mini low">C-0.07</div>
+        <div style="font-size: 8px; color: #666; margin-top: 5px;">...</div>
+      </div>
+      <h2>Output Layer</h2>
+      <p>Classifies signs (A-Z)</p>
+      <div class="layer-specs">26 Classes</div>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <h3>✨ Key Highlights of CNN Architecture ✨</h3>
+    <div class="highlight-item">
+      <p><span class="emoji">1️⃣</span><strong>Convolutional Layers:</strong> Capture edges, textures, and patterns from hand gestures using learnable filters.</p>
+    </div>
+    <div class="highlight-item">
+      <p><span class="emoji">2️⃣</span><strong>Pooling Operations:</strong> Reduce spatial dimensions while preserving important features, making the network more efficient.</p>
+    </div>
+    <div class="highlight-item">
+      <p><span class="emoji">3️⃣</span><strong>Feature Hierarchy:</strong> Early layers detect simple features, deeper layers combine them into complex hand shapes.</p>
+    </div>
+    <div class="highlight-item">
+      <p><span class="emoji">4️⃣</span><strong>Translation Invariance:</strong> Recognizes sign language gestures regardless of hand position in the image.</p>
+    </div>
+    <div class="highlight-item">
+      <p><span class="emoji">5️⃣</span><strong>End-to-End Learning:</strong> Automatically learns optimal features for sign language classification without manual feature engineering.</p>
+    </div>
+  </div>
+</body>
+</html>
